@@ -1,0 +1,30 @@
+- name: Submit DAG RUN to Airflow
+  hosts: all
+  strategy: free
+  tasks:
+
+
+    - name: Get DAG RUN info from Airflow
+      uri:
+        url: "{{ dls_api_url }}/dags/{{ dag_id }}/dagRuns/{{ TOSCA_JOB_ID }}"
+        url_username: "{{ dls_api_username }}"
+        url_password: "{{ dls_api_password }}"
+        method: GET
+        headers:
+          Accept: application/json
+        return_content: yes
+      register: get_response
+
+    - name: Extract content
+      set_fact:
+        content: "{{ get_response.content | from_json }}"
+
+    - name: Extract TOSCA_JOB_STATUS
+      set_fact:
+        TOSCA_JOB_STATUS: "{{ content.state | upper }}"
+
+    - name: Fix TOSCA_JOB_STATUS for success
+      set_fact:
+        TOSCA_JOB_STATUS: "COMPLETED"
+      when:
+        - TOSCA_JOB_STATUS == "SUCCESS"

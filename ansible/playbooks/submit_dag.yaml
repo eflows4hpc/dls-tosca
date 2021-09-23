@@ -1,0 +1,29 @@
+- name: Submit DAG RUN to Airflow
+  hosts: all
+  strategy: free
+  tasks:
+    - name: Set request body
+      set_fact:
+        request_body:
+          conf: "{{ conf | from_json }}"
+
+    - name: Submit DAG RUN to Airflow
+      uri:
+        url: "{{ dls_api_url }}/dags/{{ dag_id }}/dagRuns"
+        url_username: "{{ dls_api_username }}"
+        url_password: "{{ dls_api_password }}"
+        method: POST
+        body: "{{ request_body | to_json }}"
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+        return_content: yes
+      register: submission_response
+
+    - name: Extract content
+      set_fact:
+        content: "{{ submission_response.content | from_json }}"
+
+    - name: Extract TOSCA_JOB_ID
+      set_fact:
+        TOSCA_JOB_ID: "{{ content.dag_run_id }}"

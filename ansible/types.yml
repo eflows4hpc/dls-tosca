@@ -1,0 +1,48 @@
+tosca_definitions_version: alien_dsl_3_0_0
+
+
+metadata:
+  template_name: dls.ansible
+  template_version: 1.0.0-SNAPSHOT
+  template_author: loicalbertin
+
+
+imports:
+  - tosca-normative-types:1.0.0-ALIEN20
+  - alien-base-types:3.0.0
+  - yorc-types:1.1.0
+
+node_types:
+  dls.ansible.nodes.DLSDAGRun:
+    derived_from: org.alien4cloud.nodes.Job
+    properties:
+      dls_api_url:
+        type: string
+        required: true
+      dls_api_username:
+        type: string
+        required: true
+      dls_api_password:
+        type: string
+        required: true
+      dag_id:
+        type: string
+        required: true
+      conf:
+        type: map
+        entry_schema:
+          description: map of key/value to pass to the dag as inputs
+          type: string
+    interfaces:
+      tosca.interfaces.node.lifecycle.Runnable:
+        inputs:
+          dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_username: { get_property: [ SELF, dls_api_username ] }
+          dls_api_password: { get_property: [ SELF, dls_api_password ] }
+          dag_id: { get_property: [ SELF, dag_id ] }
+        submit:
+          inputs:
+            conf: { get_property: [ SELF, conf ] }
+          implementation: playbooks/submit_dag.yaml
+        run: playbooks/monitor_dag.yaml
+
