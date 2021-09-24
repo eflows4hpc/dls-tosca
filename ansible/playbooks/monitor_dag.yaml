@@ -9,6 +9,7 @@
         url: "{{ dls_api_url }}/dags/{{ dag_id }}/dagRuns/{{ TOSCA_JOB_ID }}"
         url_username: "{{ dls_api_username }}"
         url_password: "{{ dls_api_password }}"
+        force_basic_auth: yes
         method: GET
         headers:
           Accept: application/json
