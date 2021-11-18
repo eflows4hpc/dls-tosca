@@ -2,10 +2,15 @@
   hosts: all
   strategy: free
   tasks:
+    - name: Set extra conf
+      set_fact:
+        target_conf:
+          target: "{{ target_path }}"
+          connection: "{{ connection }}"
     - name: Set request body
       set_fact:
         request_body:
-          conf: "{{ conf | from_json }}"
+          conf: "{{ conf | from_json | combine(target_conf) }}"
 
     - name: Submit DAG RUN to Airflow
       uri:
