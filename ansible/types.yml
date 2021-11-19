@@ -28,11 +28,10 @@ node_types:
       dag_id:
         type: string
         required: true
-      conf:
-        type: map
-        entry_schema:
-          description: map of key/value to pass to the dag as inputs
-          type: string
+      oid:
+        type: string
+        description: Transferred Object ID
+        required: true
       target_path:
         type: string
         description: path of the file on the remote host
@@ -42,6 +41,12 @@ node_types:
         description: id of the connection to use
         required: false
         default: default_ssh
+      extra_conf:
+        type: map
+        required: false
+        entry_schema:
+          description: map of key/value to pass to the dag as inputs
+          type: string
     interfaces:
       tosca.interfaces.node.lifecycle.Runnable:
         inputs:
@@ -51,7 +56,8 @@ node_types:
           dag_id: { get_property: [ SELF, dag_id ] }
         submit:
           inputs:
-            conf: { get_property: [ SELF, conf ] }
+            conf: { get_property: [ SELF, extra_conf ] }
+            oid: { get_property: [ SELF, oid ] }
             target_path: { get_property: [ SELF, target_path ] }
             connection: { get_property: [ SELF, connection ] }
           implementation: playbooks/submit_dag.yaml
