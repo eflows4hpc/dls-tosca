@@ -15,6 +15,8 @@ imports:
 node_types:
   dls.ansible.nodes.DLSDAGRun:
     derived_from: org.alien4cloud.nodes.Job
+    metadata:
+      icon: airflow-icon.png
     properties:
       dls_api_url:
         type: string
