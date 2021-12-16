@@ -2,6 +2,20 @@
   hosts: all
   strategy: free
   tasks:
+    - name: Set oid
+      set_fact:
+        oid: "{{ oid_input }}"
+      when:
+        - oid_input is defined
+        - oid_input | length > 0
+
+    - name: Set target_path
+      set_fact:
+        target_path: "{{ target_path_input }}"
+      when:
+        - target_path_input is defined
+        - target_path_input | length > 0
+
     - name: Set target conf
       set_fact:
         target_conf:
