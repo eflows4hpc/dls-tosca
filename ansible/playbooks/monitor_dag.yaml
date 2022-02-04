@@ -15,10 +15,12 @@
           Accept: application/json
         return_content: yes
       register: get_response
+      no_log: True
 
     - name: Extract content
       set_fact:
         content: "{{ get_response.content | from_json }}"
+      no_log: True
 
     - name: Extract TOSCA_JOB_STATUS
       set_fact:

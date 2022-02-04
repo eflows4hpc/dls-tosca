@@ -34,15 +34,14 @@ node_types:
         type: string
         description: Transferred Object ID
         required: true
+      target_host:
+        type: string
+        description: the remote host
+        required: true
       target_path:
         type: string
         description: path of the file on the remote host
         required: true
-      connection:
-        type: string
-        description: id of the connection to use
-        required: false
-        default: default_ssh
       extra_conf:
         type: map
         required: false
@@ -63,7 +62,14 @@ node_types:
             oid_input: { get_input: oid }
             target_path: { get_property: [ SELF, target_path ] }
             target_path_input: { get_input: target_path }
-            connection: { get_property: [ SELF, connection ] }
+            host: { get_property: [ SELF, target_host ] }
+            port: "22"
+            login: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=userName] }
+            key: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=privateKey] }
+            # login: { get_secret: [ get_input: "user_secret_path", "data=userName"] }
+            # key: { get_secret: [ get_input: "user_secret_path", "data=privateKey"] }
+            # login: { get_secret: [ "/secret/data/ssh-credentials/user_id", "data=userName"] }
+            # key: { get_secret: [ "/secret/data/ssh-credentials/user_id", "data=privateKey"] }
           implementation: playbooks/submit_dag.yaml
         run: playbooks/monitor_dag.yaml
 

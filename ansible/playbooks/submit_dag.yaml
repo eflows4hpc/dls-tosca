@@ -21,7 +21,12 @@
         target_conf:
           oid: "{{ oid }}"
           target: "{{ target_path }}"
-          connection: "{{ connection }}"
+          host: "{{ host }}"
+          port: "{{ port }}"
+          login: "{{ login }}"
+          key: "{{ key }}"
+      no_log: True
+
 
     - name: add extra_conf
       set_fact:
@@ -29,11 +34,13 @@
       when:
         - conf is defined
         - conf | length > 0
+      no_log: True
 
     - name: Set request body
       set_fact:
         request_body:
           conf: "{{ target_conf }}"
+      no_log: True
 
     - name: Submit DAG RUN to Airflow
       uri:
@@ -48,10 +55,12 @@
           Accept: application/json
         return_content: yes
       register: submission_response
+      no_log: True
 
     - name: Extract content
       set_fact:
         content: "{{ submission_response.content | from_json }}"
+      no_log: True
 
     - name: Extract TOSCA_JOB_ID
       set_fact:
