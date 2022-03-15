@@ -25,7 +25,7 @@
           port: "{{ port }}"
           login: "{{ login }}"
           key: "{{ key }}"
-      no_log: True
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
 
 
     - name: add extra_conf
@@ -34,34 +34,13 @@
       when:
         - conf is defined
         - conf | length > 0
-      no_log: True
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
 
     - name: Set request body
       set_fact:
         request_body:
           conf: "{{ target_conf }}"
-      no_log: True
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
 
-    - name: Submit DAG RUN to Airflow
-      uri:
-        url: "{{ dls_api_url }}/dags/{{ dag_id }}/dagRuns"
-        url_username: "{{ dls_api_username }}"
-        url_password: "{{ dls_api_password }}"
-        force_basic_auth: yes
-        method: POST
-        body: "{{ request_body | to_json }}"
-        headers:
-          Content-Type: application/json
-          Accept: application/json
-        return_content: yes
-      register: submission_response
-      no_log: True
-
-    - name: Extract content
-      set_fact:
-        content: "{{ submission_response.content | from_json }}"
-      no_log: True
-
-    - name: Extract TOSCA_JOB_ID
-      set_fact:
-        TOSCA_JOB_ID: "{{ content.dag_run_id }}"
+    - name: Import Submit DAG RUN to Airflow
+      import_tasks: submit_tasks.yaml

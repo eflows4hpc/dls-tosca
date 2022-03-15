@@ -1,0 +1,47 @@
+- name: Submit DAG RUN to Airflow
+  hosts: all
+  strategy: free
+  tasks:
+
+    - name: Set mid
+      set_fact:
+        mid: "{{ mid_input }}"
+      when:
+        - mid_input is defined
+        - mid_input | length > 0
+
+    - name: Set source_path
+      set_fact:
+        source_path: "{{ source_path_input }}"
+      when:
+        - source_path_input is defined
+        - source_path_input | length > 0
+
+    - name: Set target conf
+      set_fact:
+        target_conf:
+          mid: "{{ mid }}"
+          source: "{{ source_path }}"
+          host: "{{ host }}"
+          port: "{{ port }}"
+          login: "{{ login }}"
+          key: "{{ key }}"
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+
+    - name: add extra_conf
+      set_fact:
+        target_conf: "{{ conf | from_json | combine(target_conf) }}"
+      when:
+        - conf is defined
+        - conf | length > 0
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+    - name: Set request body
+      set_fact:
+        request_body:
+          conf: "{{ target_conf }}"
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+    - name: Import Submit DAG RUN to Airflow
+      import_tasks: submit_tasks.yaml

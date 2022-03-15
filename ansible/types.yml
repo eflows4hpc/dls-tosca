@@ -30,6 +30,35 @@ node_types:
       dag_id:
         type: string
         required: true
+      extra_conf:
+        type: map
+        required: false
+        entry_schema:
+          description: map of key/value to pass to the dag as inputs
+          type: string
+      debug:
+        type: boolean
+        description: Do not redact sensible information on logs
+        default: false
+    interfaces:
+      tosca.interfaces.node.lifecycle.Runnable:
+        inputs:
+          dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_username: { get_property: [ SELF, dls_api_username ] }
+          dls_api_password: { get_property: [ SELF, dls_api_password ] }
+          dag_id: { get_property: [ SELF, dag_id ] }
+          debug_logs: { get_property: [ SELF, debug ] }
+        submit:
+          inputs:
+            conf: { get_property: [ SELF, extra_conf ] }
+          implementation: playbooks/submit_dag_generic.yaml
+        run: playbooks/monitor_dag.yaml
+
+  dls.ansible.nodes.DLSDAGStageInData:
+    derived_from: dls.ansible.nodes.DLSDAGRun
+    metadata:
+      icon: airflow-icon.png
+    properties:
       oid:
         type: string
         description: Transferred Object ID
@@ -41,13 +70,7 @@ node_types:
       target_path:
         type: string
         description: path of the file on the remote host
-        required: true
-      extra_conf:
-        type: map
         required: false
-        entry_schema:
-          description: map of key/value to pass to the dag as inputs
-          type: string
     interfaces:
       tosca.interfaces.node.lifecycle.Runnable:
         inputs:
@@ -55,6 +78,7 @@ node_types:
           dls_api_username: { get_property: [ SELF, dls_api_username ] }
           dls_api_password: { get_property: [ SELF, dls_api_password ] }
           dag_id: { get_property: [ SELF, dag_id ] }
+          debug_logs: { get_property: [ SELF, debug ] }
         submit:
           inputs:
             conf: { get_property: [ SELF, extra_conf ] }
@@ -66,10 +90,43 @@ node_types:
             port: "22"
             login: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=userName] }
             key: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=privateKey] }
-            # login: { get_secret: [ get_input: "user_secret_path", "data=userName"] }
-            # key: { get_secret: [ get_input: "user_secret_path", "data=privateKey"] }
-            # login: { get_secret: [ "/secret/data/ssh-credentials/user_id", "data=userName"] }
-            # key: { get_secret: [ "/secret/data/ssh-credentials/user_id", "data=privateKey"] }
-          implementation: playbooks/submit_dag.yaml
-        run: playbooks/monitor_dag.yaml
+          implementation: playbooks/submit_dag_stagein_data.yaml
+
+  dls.ansible.nodes.DLSDAGStageOutData:
+    derived_from: dls.ansible.nodes.DLSDAGRun
+    metadata:
+      icon: airflow-icon.png
+    properties:
+      mid:
+        type: string
+        description: Uploaded Metadata ID
+        required: true
+      target_host:
+        type: string
+        description: the remote host
+        required: true
+      source_path:
+        type: string
+        description: path of the file on the remote host
+        required: false
+    interfaces:
+      tosca.interfaces.node.lifecycle.Runnable:
+        inputs:
+          dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_username: { get_property: [ SELF, dls_api_username ] }
+          dls_api_password: { get_property: [ SELF, dls_api_password ] }
+          dag_id: { get_property: [ SELF, dag_id ] }
+          debug_logs: { get_property: [ SELF, debug ] }
+        submit:
+          inputs:
+            conf: { get_property: [ SELF, extra_conf ] }
+            mid: { get_property: [ SELF, mid ] }
+            mid_input: { get_input: mid }
+            source_path: { get_property: [ SELF, source_path ] }
+            source_path_input: { get_input: source_path }
+            host: { get_property: [ SELF, target_host ] }
+            port: "22"
+            login: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=userName] }
+            key: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=privateKey] }
+          implementation: playbooks/submit_dag_stageout_data.yaml
 

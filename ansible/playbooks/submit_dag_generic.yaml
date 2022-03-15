@@ -1,0 +1,13 @@
+- name: Submit DAG RUN to Airflow
+  hosts: all
+  strategy: free
+  tasks:
+
+    - name: Set request body
+      set_fact:
+        request_body:
+          conf: "{{ conf | default('{}') | from_json }}"
+      no_log: True
+
+    - name: Import Submit DAG RUN to Airflow
+      import_tasks: submit_tasks.yaml

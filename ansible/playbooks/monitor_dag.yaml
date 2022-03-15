@@ -1,4 +1,4 @@
-- name: Submit DAG RUN to Airflow
+- name: Monitor DAG RUN in Airflow
   hosts: all
   strategy: free
   tasks:
@@ -15,12 +15,12 @@
           Accept: application/json
         return_content: yes
       register: get_response
-      no_log: True
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
 
     - name: Extract content
       set_fact:
         content: "{{ get_response.content | from_json }}"
-      no_log: True
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
 
     - name: Extract TOSCA_JOB_STATUS
       set_fact:
