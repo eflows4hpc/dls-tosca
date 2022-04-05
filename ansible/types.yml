@@ -88,8 +88,10 @@ node_types:
             target_path_input: { get_input: target_path }
             host: { get_property: [ SELF, target_host ] }
             port: "22"
-            login: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=userName] }
-            key: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=privateKey] }
+            login: { get_input: user_id }
+            vault_id: { get_input: vault_id }
+            #login: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=userName] }
+            #key: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=privateKey] }
           implementation: playbooks/submit_dag_stagein_data.yaml
 
   dls.ansible.nodes.DLSDAGStageOutData:
@@ -109,6 +111,11 @@ node_types:
         type: string
         description: path of the file on the remote host
         required: false
+      register:
+        type: boolean
+        description: Should the record created in b2share be registered with data cat
+        required: false
+        default: false
     interfaces:
       tosca.interfaces.node.lifecycle.Runnable:
         inputs:
@@ -124,9 +131,13 @@ node_types:
             mid_input: { get_input: mid }
             source_path: { get_property: [ SELF, source_path ] }
             source_path_input: { get_input: source_path }
+            register: { get_property: [ SELF, register ] }
+            register_input: { get_input: register }
             host: { get_property: [ SELF, target_host ] }
             port: "22"
-            login: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=userName] }
-            key: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=privateKey] }
+            login: { get_input: user_id }
+            vault_id: { get_input: vault_id }
+            #login: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=userName] }
+            #key: { get_vault_secret: [ concat: ["/secret/data/ssh-credentials/", get_input: user_id ], data=privateKey] }
           implementation: playbooks/submit_dag_stageout_data.yaml
 
