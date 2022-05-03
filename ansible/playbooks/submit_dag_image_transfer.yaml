@@ -3,26 +3,26 @@
   strategy: free
   tasks:
 
-    - name: Set mid
+    - name: Set image_id
       set_fact:
-        mid: "{{ mid_input }}"
+        image_id: "{{ image_id_input }}"
       when:
-        - mid_input is defined
-        - mid_input | length > 0
+        - image_id_input is defined
+        - image_id_input | length > 0
 
-    - name: Set source_path
+    - name: Set image_id from file name
       set_fact:
-        source_path: "{{ source_path_input }}"
+        image_id: "{{ builded_file_name }}"
       when:
-        - source_path_input is defined
-        - source_path_input | length > 0
+        - builded_file_name is defined
+        - builded_file_name | length > 0
 
-    - name: Set register
+    - name: Set target_path
       set_fact:
-        register: "{{ register_input }}"
+        target_path: "{{ target_path_input }}"
       when:
-        - register_input is defined
-        - register_input | length > 0
+        - target_path_input is defined
+        - target_path_input | length > 0
 
     - name: Set login
       set_fact:
@@ -41,15 +41,13 @@
     - name: Set target conf
       set_fact:
         target_conf:
-          mid: "{{ mid }}"
-          source: "{{ source_path }}"
+          image_id: "{{ image_id }}"
+          target: "{{ target_path }}"
           host: "{{ host }}"
           port: "{{ port }}"
           login: "{{ login }}"
           vault_id: "{{ vault_id }}"
-          register: "{{ register }}"
       no_log: "{{ debug_logs | default('false') == 'false' }}"
-
 
     - name: add extra_conf
       set_fact:

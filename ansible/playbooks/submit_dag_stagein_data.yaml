@@ -16,6 +16,20 @@
         - target_path_input is defined
         - target_path_input | length > 0
 
+    - name: Set login
+      set_fact:
+        login: "{{ login_input }}"
+      when:
+        - login_input is defined
+        - login_input | length > 0
+
+    - name: Set vault_id
+      set_fact:
+        vault_id: "{{ vault_id_input }}"
+      when:
+        - vault_id_input is defined
+        - vault_id_input | length > 0
+
     - name: Set target conf
       set_fact:
         target_conf:
