@@ -169,6 +169,8 @@ node_types:
         type: string
         description: path of the file on the remote host
         required: false
+    attributes:
+      image_file_path: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, image_file_path ] }
     interfaces:
       tosca.interfaces.node.lifecycle.Runnable:
         inputs:

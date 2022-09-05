@@ -65,3 +65,7 @@
 
     - name: Import Submit DAG RUN to Airflow
       import_tasks: submit_tasks.yaml
+
+    - name: Set Image path
+      set_fact:
+        image_file_path: "{{ target_path }}/{{ image_id }}"
