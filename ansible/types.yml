@@ -72,7 +72,7 @@ node_types:
       oid:
         type: string
         description: Transferred Object ID
-        required: true
+        required: false
       target_host:
         type: string
         description: the remote host
@@ -160,7 +160,7 @@ node_types:
       image_id:
         type: string
         description: The image id to transfer
-        required: true
+        required: false
       target_host:
         type: string
         description: the remote host
