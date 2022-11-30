@@ -1,0 +1,20 @@
+- name: Submit and monitor DAG RUN to Airflow
+  hosts: all
+  vars:
+    RECURSIVE_MONITORING: True
+  tasks:
+    - name: Set submit tasks file
+      set_fact:
+        submit_tasks_file: "{{ submit_tasks }}"
+
+    - name: Submit and monitor DAG RUN
+      block:
+        - include_tasks: "{{ submit_tasks_file }}"
+
+        - include_tasks: "monitor_dag_tasks.yaml"
+
+        - name: fail if in case of error
+          fail:
+            msg: "Airflow DAG run failed"
+          when: TOSCA_JOB_STATUS == 'FAILED'
+      when: run_in_standard_mode == 'true'

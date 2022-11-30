@@ -3,7 +3,7 @@ tosca_definitions_version: alien_dsl_3_0_0
 
 metadata:
   template_name: dls.ansible
-  template_version: 1.1.0-SNAPSHOT
+  template_version: 1.2.0-SNAPSHOT
   template_author: loicalbertin
 
 
@@ -11,6 +11,7 @@ imports:
   - tosca-normative-types:1.0.0-ALIEN20
   - alien-base-types:3.0.0
   - yorc-types:1.1.0
+  - eflows4hpc.env:1.0.0-SNAPSHOT
 
 node_types:
   dls.ansible.nodes.DLSDAGRun:
@@ -20,7 +21,7 @@ node_types:
     properties:
       dls_api_url:
         type: string
-        required: true
+        required: false
       dls_api_username:
         type: string
         required: true
@@ -50,18 +51,41 @@ node_types:
         description: User id to use for authentication may be replaced with workflow input
         required: false
         default: ""
+      run_in_standard_mode:
+        type: boolean
+        required: false
+        default: false
+    requirements:
+      - environment:
+          capability: eflows4hpc.env.capabilities.ExecutionEnvironment
+          relationship: tosca.relationships.DependsOn
+          occurrences: [ 0, UNBOUNDED ]
     interfaces:
-      tosca.interfaces.node.lifecycle.Runnable:
+      Standard:
         inputs:
+          run_in_standard_mode: { get_property: [ SELF, run_in_standard_mode ] }
+          submit_tasks: "submit_dag_generic.yaml"
           dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_url_from_env: { get_attribute: [ REQ_TARGET, environment, dls_api_url] }
           dls_api_username: { get_property: [ SELF, dls_api_username ] }
           dls_api_password: { get_property: [ SELF, dls_api_password ] }
           dag_id: { get_property: [ SELF, dag_id ] }
           debug_logs: { get_property: [ SELF, debug ] }
-        submit:
-          inputs:
-            conf: { get_property: [ SELF, extra_conf ] }
-          implementation: playbooks/submit_dag_generic.yaml
+          conf: { get_property: [ SELF, extra_conf ] }
+
+        start: playbooks/start_in_standard_mode.yaml
+      tosca.interfaces.node.lifecycle.Runnable:
+        inputs:
+          submit_tasks: "submit_dag_generic.yaml"
+          dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_url_from_env: { get_attribute: [ REQ_TARGET, environment, dls_api_url] }
+          dls_api_username: { get_property: [ SELF, dls_api_username ] }
+          dls_api_password: { get_property: [ SELF, dls_api_password ] }
+          dag_id: { get_property: [ SELF, dag_id ] }
+          debug_logs: { get_property: [ SELF, debug ] }
+          conf: { get_property: [ SELF, extra_conf ] }
+
+        submit: playbooks/submit_dag.yaml
         run: playbooks/monitor_dag.yaml
 
   dls.ansible.nodes.DLSDAGStageInData:
@@ -76,33 +100,68 @@ node_types:
       target_host:
         type: string
         description: the remote host
-        required: true
+        required: false
       target_path:
         type: string
         description: path of the file on the remote host
         required: false
+      input_name_for_oid:
+        type: string
+        description:
+        required: true
+        default : "oid"
+      input_name_for_target_path:
+        type: string
+        description:
+        required: true
+        default : "oid"
     interfaces:
-      tosca.interfaces.node.lifecycle.Runnable:
+      Standard:
         inputs:
+          run_in_standard_mode: { get_property: [ SELF, run_in_standard_mode ] }
+          submit_tasks: "submit_dag_stagein_data.yaml"
           dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_url_from_env: { get_attribute: [ REQ_TARGET, environment, dls_api_url] }
           dls_api_username: { get_property: [ SELF, dls_api_username ] }
           dls_api_password: { get_property: [ SELF, dls_api_password ] }
           dag_id: { get_property: [ SELF, dag_id ] }
           debug_logs: { get_property: [ SELF, debug ] }
-        submit:
+          conf: { get_property: [ SELF, extra_conf ] }
+        start:
           inputs:
-            conf: { get_property: [ SELF, extra_conf ] }
             oid: { get_property: [ SELF, oid ] }
-            oid_input: { get_input: oid }
             target_path: { get_property: [ SELF, target_path ] }
-            target_path_input: { get_input: target_path }
             host: { get_property: [ SELF, target_host ] }
+            host_from_env: { get_attribute: [ REQ_TARGET, environment, cluster_login_host] }
+            port: "22"
+            login: { get_property: [ SELF, user_id ] }
+            vault_id: { get_property: [ SELF, vault_id ] }
+          implementation: playbooks/start_in_standard_mode.yaml
+
+      tosca.interfaces.node.lifecycle.Runnable:
+        inputs:
+          submit_tasks: "submit_dag_stagein_data.yaml"
+          dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_url_from_env: { get_attribute: [ REQ_TARGET, environment, dls_api_url] }
+          dls_api_username: { get_property: [ SELF, dls_api_username ] }
+          dls_api_password: { get_property: [ SELF, dls_api_password ] }
+          dag_id: { get_property: [ SELF, dag_id ] }
+          debug_logs: { get_property: [ SELF, debug ] }
+          conf: { get_property: [ SELF, extra_conf ] }
+        submit:
+          implementation: playbooks/submit_dag.yaml
+          inputs:
+            oid: { get_property: [ SELF, oid ] }
+            oid_input: { get_input_nf: [get_property: [SELF, input_name_for_oid]] }
+            target_path: { get_property: [ SELF, target_path ] }
+            target_path_input: { get_input_nf: [get_property: [SELF, input_name_for_target_path]] }
+            host: { get_property: [ SELF, target_host ] }
+            host_from_env: { get_attribute: [ REQ_TARGET, environment, cluster_login_host] }
             port: "22"
             login: { get_property: [ SELF, user_id ] }
             vault_id: { get_property: [ SELF, vault_id ] }
             login_input: { get_input: user_id }
             vault_id_input: { get_input: vault_id }
-          implementation: playbooks/submit_dag_stagein_data.yaml
 
   dls.ansible.nodes.DLSDAGStageOutData:
     derived_from: dls.ansible.nodes.DLSDAGRun
@@ -112,11 +171,11 @@ node_types:
       mid:
         type: string
         description: Uploaded Metadata ID
-        required: true
+        required: false
       target_host:
         type: string
         description: the remote host
-        required: true
+        required: false
       source_path:
         type: string
         description: path of the file on the remote host
@@ -126,31 +185,68 @@ node_types:
         description: Should the record created in b2share be registered with data cat
         required: false
         default: false
+      input_name_for_mid:
+        type: string
+        required: true
+        default: mid
+      input_name_for_source_path:
+        type: string
+        required: true
+        default: source_path
+      input_name_for_register:
+        type: string
+        required: true
+        default: register
     interfaces:
-      tosca.interfaces.node.lifecycle.Runnable:
+      Standard:
         inputs:
+          run_in_standard_mode: { get_property: [ SELF, run_in_standard_mode ] }
+          submit_tasks: "submit_dag_stageout_data.yaml"
           dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_url_from_env: { get_attribute: [ REQ_TARGET, environment, dls_api_url] }
           dls_api_username: { get_property: [ SELF, dls_api_username ] }
           dls_api_password: { get_property: [ SELF, dls_api_password ] }
           dag_id: { get_property: [ SELF, dag_id ] }
           debug_logs: { get_property: [ SELF, debug ] }
-        submit:
+          conf: { get_property: [ SELF, extra_conf ] }
+        start:
+          implementation: playbooks/start_in_standard_mode.yaml
           inputs:
-            conf: { get_property: [ SELF, extra_conf ] }
             mid: { get_property: [ SELF, mid ] }
-            mid_input: { get_input: mid }
             source_path: { get_property: [ SELF, source_path ] }
-            source_path_input: { get_input: source_path }
             register: { get_property: [ SELF, register ] }
-            register_input: { get_input: register }
             host: { get_property: [ SELF, target_host ] }
+            host_from_env: { get_attribute: [ REQ_TARGET, environment, cluster_login_host] }
+            port: "22"
+            login: { get_property: [ SELF, user_id ] }
+            vault_id: { get_property: [ SELF, vault_id ] }
+
+      tosca.interfaces.node.lifecycle.Runnable:
+        inputs:
+          submit_tasks: "submit_dag_stageout_data.yaml"
+          dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_url_from_env: { get_attribute: [ REQ_TARGET, environment, dls_api_url] }
+          dls_api_username: { get_property: [ SELF, dls_api_username ] }
+          dls_api_password: { get_property: [ SELF, dls_api_password ] }
+          dag_id: { get_property: [ SELF, dag_id ] }
+          debug_logs: { get_property: [ SELF, debug ] }
+          conf: { get_property: [ SELF, extra_conf ] }
+        submit:
+          implementation: playbooks/submit_dag.yaml
+          inputs:
+            mid: { get_property: [ SELF, mid ] }
+            mid_input: { get_input_nf: [get_property: [SELF, input_name_for_mid]] }
+            source_path: { get_property: [ SELF, source_path ] }
+            source_path_input: { get_input_nf: [get_property: [SELF, input_name_for_source_path]] }
+            register: { get_property: [ SELF, register ] }
+            register_input: { get_input_nf: [get_property: [SELF, input_name_for_register]] }
+            host: { get_property: [ SELF, target_host ] }
+            host_from_env: { get_attribute: [ REQ_TARGET, environment, cluster_login_host] }
             port: "22"
             login: { get_property: [ SELF, user_id ] }
             vault_id: { get_property: [ SELF, vault_id ] }
             login_input: { get_input: user_id }
             vault_id_input: { get_input: vault_id }
-          implementation: playbooks/submit_dag_stageout_data.yaml
-
 
   dls.ansible.nodes.DLSDAGImageTransfer:
     derived_from: dls.ansible.nodes.DLSDAGRun
@@ -164,34 +260,65 @@ node_types:
       target_host:
         type: string
         description: the remote host
-        required: true
+        required: false
       target_path:
         type: string
         description: path of the file on the remote host
         required: false
+      run_in_standard_mode:
+        type: boolean
+        required: false
+        default: true
     attributes:
-      image_file_path: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, image_file_path ] }
+      image_file_path_submit: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, image_file_path ] }
+      image_file_path_start: { get_operation_output: [ SELF, Standard, start, image_file_path ] }
     interfaces:
-      tosca.interfaces.node.lifecycle.Runnable:
+      Standard:
         inputs:
+          run_in_standard_mode: { get_property: [ SELF, run_in_standard_mode ] }
+          submit_tasks: "submit_dag_image_transfer.yaml"
           dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_url_from_env: { get_attribute: [ REQ_TARGET, environment, dls_api_url] }
           dls_api_username: { get_property: [ SELF, dls_api_username ] }
           dls_api_password: { get_property: [ SELF, dls_api_password ] }
           dag_id: { get_property: [ SELF, dag_id ] }
           debug_logs: { get_property: [ SELF, debug ] }
-        submit:
+          conf: { get_property: [ SELF, extra_conf ] }
+        start:
+          implementation: playbooks/start_in_standard_mode.yaml
           inputs:
             builded_file_name: { get_attribute: [ REQ_TARGET, dependency, filename] }
-            conf: { get_property: [ SELF, extra_conf ] }
+            image_id: { get_property: [ SELF, image_id ] }
+            target_path: { get_property: [ SELF, target_path ] }
+            host: { get_property: [ SELF, target_host ] }
+            host_from_env: { get_attribute: [ REQ_TARGET, environment, cluster_login_host] }
+            port: "22"
+            login: { get_property: [ SELF, user_id ] }
+            vault_id: { get_property: [ SELF, vault_id ] }
+
+      tosca.interfaces.node.lifecycle.Runnable:
+        inputs:
+          submit_tasks: "submit_dag_image_transfer.yaml"
+          dls_api_url: { get_property: [ SELF, dls_api_url ] }
+          dls_api_url_from_env: { get_attribute: [ REQ_TARGET, environment, dls_api_url] }
+          dls_api_username: { get_property: [ SELF, dls_api_username ] }
+          dls_api_password: { get_property: [ SELF, dls_api_password ] }
+          dag_id: { get_property: [ SELF, dag_id ] }
+          debug_logs: { get_property: [ SELF, debug ] }
+          conf: { get_property: [ SELF, extra_conf ] }
+        submit:
+          implementation: playbooks/submit_dag.yaml
+          inputs:
+            builded_file_name: { get_attribute: [ REQ_TARGET, dependency, filename] }
             image_id: { get_property: [ SELF, image_id ] }
             image_id_input: { get_input: image_id }
             target_path: { get_property: [ SELF, target_path ] }
             target_path_input: { get_input: image_target_path }
             host: { get_property: [ SELF, target_host ] }
+            host_from_env: { get_attribute: [ REQ_TARGET, environment, cluster_login_host] }
             port: "22"
             login: { get_property: [ SELF, user_id ] }
             vault_id: { get_property: [ SELF, vault_id ] }
             login_input: { get_input: user_id }
             vault_id_input: { get_input: vault_id }
-          implementation: playbooks/submit_dag_image_transfer.yaml
 

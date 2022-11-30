@@ -1,4 +1,10 @@
 ---
+- name: Set API URL
+  set_fact:
+    dls_api_url: "{{ dls_api_url_from_env }}"
+  when:
+    - dls_api_url_from_env is defined
+    - dls_api_url_from_env | length > 0
 
 - name: Submit DAG RUN to Airflow
   uri:

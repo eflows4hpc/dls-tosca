@@ -1,0 +1,10 @@
+- name: Submit DAG RUN to Airflow
+  hosts: all
+  tasks:
+
+    - name: Set submit tasks file
+      set_fact:
+        submit_tasks_file: "{{ submit_tasks }}"
+
+    - name: Submit DAG RUN to Airflow
+      include_tasks: "{{ submit_tasks_file }}"
