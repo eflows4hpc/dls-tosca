@@ -13,12 +13,19 @@
     - image_id_input is defined
     - image_id_input | length > 0
 
-- name: Set image_id from file name
+- name: Set image_id from file name start op
   set_fact:
-    image_id: "{{ builded_file_name }}"
+    image_id: "{{ builded_file_name_start }}"
   when:
-    - builded_file_name is defined
-    - builded_file_name | length > 0
+    - builded_file_name_start is defined
+    - builded_file_name_start | length > 0
+
+- name: Set image_id from file name run op
+  set_fact:
+    image_id: "{{ builded_file_name_run }}"
+  when:
+    - builded_file_name_run is defined
+    - builded_file_name_run | length > 0
 
 - name: Set target_path
   set_fact:

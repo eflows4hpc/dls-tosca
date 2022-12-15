@@ -287,7 +287,8 @@ node_types:
         start:
           implementation: playbooks/start_in_standard_mode.yaml
           inputs:
-            builded_file_name: { get_attribute: [ REQ_TARGET, dependency, filename] }
+            builded_file_name_start: { get_attribute: [ REQ_TARGET, dependency, filename_start] }
+            builded_file_name_run: { get_attribute: [ REQ_TARGET, dependency, filename_run] }
             image_id: { get_property: [ SELF, image_id ] }
             target_path: { get_property: [ SELF, target_path ] }
             host: { get_property: [ SELF, target_host ] }
@@ -309,7 +310,8 @@ node_types:
         submit:
           implementation: playbooks/submit_dag.yaml
           inputs:
-            builded_file_name: { get_attribute: [ REQ_TARGET, dependency, filename] }
+            builded_file_name_start: { get_attribute: [ REQ_TARGET, dependency, filename_start] }
+            builded_file_name_run: { get_attribute: [ REQ_TARGET, dependency, filename_run] }
             image_id: { get_property: [ SELF, image_id ] }
             image_id_input: { get_input: image_id }
             target_path: { get_property: [ SELF, target_path ] }
