@@ -1,0 +1,66 @@
+---
+
+- name: Set host from env
+  set_fact:
+    host: "{{ host_from_env }}"
+  when:
+    - host_from_env is defined
+    - host_from_env | length > 0
+
+- name: Set url
+  set_fact:
+    url: "{{ url_input }}"
+  when:
+    - url_input is defined
+    - url_input | length > 0
+
+- name: Set target_path
+  set_fact:
+    target_path: "{{ target_path_input }}"
+  when:
+    - target_path_input is defined
+    - target_path_input | length > 0
+
+- name: Set login
+  set_fact:
+    login: "{{ login_input }}"
+  when:
+    - login_input is defined
+    - login_input | length > 0
+
+- name: Set vault_id
+  set_fact:
+    vault_id: "{{ vault_id_input }}"
+  when:
+    - vault_id_input is defined
+    - vault_id_input | length > 0
+
+- name: Set target conf
+  set_fact:
+    target_conf:
+      url: "{{ url }}"
+      force: "{{ force | bool }}"
+      target: "{{ target_path }}"
+      host: "{{ host }}"
+      port: "{{ port }}"
+      login: "{{ login }}"
+      vault_id: "{{ vault_id }}"
+  no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+
+- name: add extra_conf
+  set_fact:
+    target_conf: "{{ conf | from_json | combine(target_conf) }}"
+  when:
+    - conf is defined
+    - conf | length > 0
+  no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+- name: Set request body
+  set_fact:
+    request_body:
+      conf: "{{ target_conf }}"
+  no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+- name: Import Submit DAG RUN to Airflow
+  include_tasks: submit_tasks.yaml
