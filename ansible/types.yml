@@ -114,7 +114,7 @@ node_types:
         type: string
         description:
         required: true
-        default : "oid"
+        default : "target_path"
     interfaces:
       Standard:
         inputs:
