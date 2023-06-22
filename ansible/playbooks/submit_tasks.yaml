@@ -29,3 +29,7 @@
 - name: Extract TOSCA_JOB_ID
   set_fact:
     TOSCA_JOB_ID: "{{ content.dag_run_id }}"
+
+- name: Extract execution url
+  set_fact:
+    execution_url: "{{ dls_api_url  | regex_replace('^(.+)/api.*$', '\\1') }}/graph?dag_id={{ dag_id }}&run_id={{ content.dag_run_id }}"

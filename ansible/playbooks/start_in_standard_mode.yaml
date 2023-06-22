@@ -6,6 +6,7 @@
     - name: Set submit tasks file
       set_fact:
         submit_tasks_file: "{{ submit_tasks }}"
+        execution_url: ""
 
     - name: Submit and monitor DAG RUN
       block:

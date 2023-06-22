@@ -57,6 +57,8 @@
       port: "{{ port }}"
       login: "{{ login }}"
       vault_id: "{{ vault_id }}"
+      url: "{{ image_builder_url }}/images/download/"
+      vault_path: "{{ image_builder_vault_secret_path }}"
   no_log: "{{ debug_logs | default('false') == 'false' }}"
 
 - name: add extra_conf
@@ -70,6 +72,7 @@
 - name: Set request body
   set_fact:
     request_body:
+      dag_run_id: "{{ login }}-{{ 1000000000 | random | to_uuid }}"
       conf: "{{ target_conf }}"
   no_log: "{{ debug_logs | default('false') == 'false' }}"
 
