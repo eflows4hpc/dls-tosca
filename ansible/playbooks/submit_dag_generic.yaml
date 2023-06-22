@@ -24,6 +24,7 @@
 - name: Set request body
   set_fact:
     request_body:
+      dag_run_id: "{{ login }}-{{ 1000000000 | random | to_uuid }}"
       conf: "{{ conf | default('{}') | from_json | combine(target_conf) }}"
   no_log: True
 

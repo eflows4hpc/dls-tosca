@@ -11,7 +11,7 @@ imports:
   - tosca-normative-types:1.0.0-ALIEN20
   - alien-base-types:3.0.0
   - yorc-types:1.1.0
-  - eflows4hpc.env:1.0.0
+  - eflows4hpc.env:1.1.0
 
 node_types:
   dls.ansible.nodes.DLSDAGRun:
@@ -60,6 +60,9 @@ node_types:
           capability: eflows4hpc.env.capabilities.ExecutionEnvironment
           relationship: tosca.relationships.DependsOn
           occurrences: [ 0, UNBOUNDED ]
+    attributes:
+      display_url_submit: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, execution_url ] }
+      display_url_start: { get_operation_output: [ SELF, Standard, start, execution_url ] }
     interfaces:
       Standard:
         inputs:
@@ -73,7 +76,11 @@ node_types:
           debug_logs: { get_property: [ SELF, debug ] }
           conf: { get_property: [ SELF, extra_conf ] }
 
-        start: playbooks/start_in_standard_mode.yaml
+        start:
+          inputs:
+            login: { get_property: [ SELF, user_id ] }
+            vault_id: { get_property: [ SELF, vault_id ] }
+          implementation: playbooks/start_in_standard_mode.yaml
       tosca.interfaces.node.lifecycle.Runnable:
         inputs:
           submit_tasks: "submit_dag_generic.yaml"
@@ -85,7 +92,13 @@ node_types:
           debug_logs: { get_property: [ SELF, debug ] }
           conf: { get_property: [ SELF, extra_conf ] }
 
-        submit: playbooks/submit_dag.yaml
+        submit:
+          implementation: playbooks/submit_dag.yaml
+          inputs:
+            login: { get_property: [ SELF, user_id ] }
+            vault_id: { get_property: [ SELF, vault_id ] }
+            login_input: { get_input: user_id }
+            vault_id_input: { get_input: vault_id }
         run: playbooks/monitor_dag.yaml
 
   dls.ansible.nodes.DLSDAGStageInData:
@@ -115,6 +128,9 @@ node_types:
         description:
         required: true
         default : "target_path"
+    attributes:
+      display_url_submit: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, execution_url ] }
+      display_url_start: { get_operation_output: [ SELF, Standard, start, execution_url ] }
     interfaces:
       Standard:
         inputs:
@@ -203,6 +219,9 @@ node_types:
           If an input with this name exists for the workflow, it overrides the target_path property.
         required: true
         default : "target_path"
+    attributes:
+      display_url_submit: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, execution_url ] }
+      display_url_start: { get_operation_output: [ SELF, Standard, start, execution_url ] }
     interfaces:
       Standard:
         inputs:
@@ -287,6 +306,9 @@ node_types:
         type: string
         required: true
         default: register
+    attributes:
+      display_url_submit: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, execution_url ] }
+      display_url_start: { get_operation_output: [ SELF, Standard, start, execution_url ] }
     interfaces:
       Standard:
         inputs:
@@ -343,6 +365,15 @@ node_types:
     metadata:
       icon: airflow-icon.png
     properties:
+      image_builder_url:
+        type: string
+        description: URL of Image Builder Service API
+        default: https://eflows4hpc.bsc.es/image_creation
+      image_builder_vault_secret_path:
+        type: string
+        description: path in Vault secret engine of credentials for the Image Builder Service
+        default: "/services_secrets/image_creation"
+        required: true
       image_id:
         type: string
         description: The image id to transfer
@@ -362,6 +393,8 @@ node_types:
     attributes:
       image_file_path_submit: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, image_file_path ] }
       image_file_path_start: { get_operation_output: [ SELF, Standard, start, image_file_path ] }
+      display_url_submit: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, submit, execution_url ] }
+      display_url_start: { get_operation_output: [ SELF, Standard, start, execution_url ] }
     interfaces:
       Standard:
         inputs:
@@ -379,6 +412,8 @@ node_types:
           inputs:
             builded_file_name_start: { get_attribute: [ REQ_TARGET, dependency, filename_start] }
             builded_file_name_run: { get_attribute: [ REQ_TARGET, dependency, filename_run] }
+            image_builder_url: { get_property: [ SELF, image_builder_url ] }
+            image_builder_vault_secret_path: { get_property: [ SELF, image_builder_vault_secret_path ] }
             image_id: { get_property: [ SELF, image_id ] }
             target_path: { get_property: [ SELF, target_path ] }
             host: { get_property: [ SELF, target_host ] }
@@ -402,6 +437,8 @@ node_types:
           inputs:
             builded_file_name_start: { get_attribute: [ REQ_TARGET, dependency, filename_start] }
             builded_file_name_run: { get_attribute: [ REQ_TARGET, dependency, filename_run] }
+            image_builder_url: { get_property: [ SELF, image_builder_url ] }
+            image_builder_vault_secret_path: { get_property: [ SELF, image_builder_vault_secret_path ] }
             image_id: { get_property: [ SELF, image_id ] }
             image_id_input: { get_input: image_id }
             target_path: { get_property: [ SELF, target_path ] }
