@@ -7,12 +7,19 @@
     - host_from_env is defined
     - host_from_env | length > 0
 
-- name: Set url
+- name: Set git_url
   set_fact:
-    url: "{{ url_input }}"
+    git_url: "{{ git_url_input }}"
   when:
-    - url_input is defined
-    - url_input | length > 0
+    - git_url_input is defined
+    - git_url_input | length > 0
+
+- name: Set git_repo
+  set_fact:
+    git_repo: "{{ git_repo_input }}"
+  when:
+    - git_repo_input is defined
+    - git_repo_input | length > 0
 
 - name: Set target_path
   set_fact:
@@ -38,11 +45,10 @@
 - name: Set target conf
   set_fact:
     target_conf:
-      url: "{{ url }}"
-      force: "{{ force | bool }}"
+      gitlab_url: "{{ git_url }}"
+      gitlab_repo: "{{ git_repo }}"
       target: "{{ target_path }}"
       host: "{{ host }}"
-      port: "{{ port | int }}"
       login: "{{ login }}"
       vault_id: "{{ vault_id }}"
   no_log: "{{ debug_logs | default('false') == 'false' }}"

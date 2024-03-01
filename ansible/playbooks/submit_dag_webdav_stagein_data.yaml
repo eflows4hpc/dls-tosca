@@ -7,12 +7,12 @@
     - host_from_env is defined
     - host_from_env | length > 0
 
-- name: Set url
+- name: Set oid
   set_fact:
-    url: "{{ url_input }}"
+    oid: "{{ oid_input }}"
   when:
-    - url_input is defined
-    - url_input | length > 0
+    - oid_input is defined
+    - oid_input | length > 0
 
 - name: Set target_path
   set_fact:
@@ -38,11 +38,10 @@
 - name: Set target conf
   set_fact:
     target_conf:
-      url: "{{ url }}"
+      oid: "{{ oid }}"
       force: "{{ force | bool }}"
       target: "{{ target_path }}"
       host: "{{ host }}"
-      port: "{{ port | int }}"
       login: "{{ login }}"
       vault_id: "{{ vault_id }}"
   no_log: "{{ debug_logs | default('false') == 'false' }}"
