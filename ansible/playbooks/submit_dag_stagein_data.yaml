@@ -41,7 +41,6 @@
       oid: "{{ oid }}"
       target: "{{ target_path }}"
       host: "{{ host }}"
-      port: "{{ port }}"
       login: "{{ login }}"
       vault_id: "{{ vault_id }}"
   no_log: "{{ debug_logs | default('false') == 'false' }}"

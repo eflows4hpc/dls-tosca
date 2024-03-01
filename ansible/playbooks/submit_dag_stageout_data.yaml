@@ -47,10 +47,10 @@
       mid: "{{ mid }}"
       source: "{{ source_path }}"
       host: "{{ host }}"
-      port: "{{ port }}"
+      port: "{{ port | int }}"
       login: "{{ login }}"
       vault_id: "{{ vault_id }}"
-      register: "{{ register }}"
+      register: "{{ register | bool }}"
   no_log: "{{ debug_logs | default('false') == 'false' }}"
 
 

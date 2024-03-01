@@ -1,0 +1,103 @@
+---
+
+- name: Set source_host from env
+  set_fact:
+    source_host: "{{ source_host_from_env }}"
+  when:
+    - source_host_from_env is defined
+    - source_host_from_env | length > 0
+
+- name: Set targer_host from env
+  set_fact:
+    target_host: "{{ target_host_from_env }}"
+  when:
+    - target_host_from_env is defined
+    - target_host_from_env | length > 0
+
+- name: Set source_path
+  set_fact:
+    source_path: "{{ source_path_input }}"
+  when:
+    - source_path_input is defined
+    - source_path_input | length > 0
+
+- name: Set target_path
+  set_fact:
+    target_path: "{{ target_path_input }}"
+  when:
+    - target_path_input is defined
+    - target_path_input | length > 0
+
+- name: Set source login
+  set_fact:
+    source_login: "{{ source_login_input }}"
+  when:
+    - source_login_input is defined
+    - source_login_input | length > 0
+
+- name: Set target login
+  set_fact:
+    target_login: "{{ target_login_input }}"
+  when:
+    - target_login_input is defined
+    - target_login_input | length > 0
+
+- name: Set source vault_id
+  set_fact:
+    source_vault_id: "{{ source_vault_id_input }}"
+  when:
+    - source_vault_id_input is defined
+    - source_vault_id_input | length > 0
+
+- name: Set target vault_id
+  set_fact:
+    target_vault_id: "{{ target_vault_id_input }}"
+  when:
+    - target_vault_id_input is defined
+    - target_vault_id_input | length > 0
+
+- name: Set source vault_id as target vault_id when it is not defined
+  set_fact:
+    source_vault_id: "{{ target_vault_id }}"
+  when:
+    - target_vault_id is defined
+    - source_vault_id | length == 0
+
+- name: Set source login when not defined
+  set_fact:
+    source_login: "{{ target_login }}"
+  when:
+    - target_login is defined
+    - source_login | length == 0
+
+- name: Set target conf
+  set_fact:
+    target_conf:
+      source_path: "{{ source_path }}"
+      source_host: "{{ source_host }}"
+      source_login: "{{ source_login }}"
+      source_vault_id: "{{ source_vault_id }}"
+      target_path: "{{ target_path }}"
+      target_host: "{{ target_host }}"
+      target_login: "{{ target_login }}"
+      target_vault_id: "{{ target_vault_id }}"
+  no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+
+- name: add extra_conf
+  set_fact:
+    target_conf: "{{ conf | from_json | combine(target_conf) }}"
+  when:
+    - conf is defined
+    - conf | length > 0
+  no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+- name: Set request body
+  set_fact:
+    request_body:
+      dag_run_id: "{{ target_login }}-{{ 1000000000 | random | to_uuid }}"
+      conf: "{{ target_conf }}"
+  no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+- name: Import Submit DAG RUN to Airflow
+  include_tasks: submit_tasks.yaml

@@ -1,5 +1,4 @@
 ---
-
 - name: Set host from env
   set_fact:
     host: "{{ host_from_env }}"
@@ -7,19 +6,19 @@
     - host_from_env is defined
     - host_from_env | length > 0
 
-- name: Set url
+- name: Set oid
   set_fact:
-    url: "{{ url_input }}"
+    oid: "{{ oid_input }}"
   when:
-    - url_input is defined
-    - url_input | length > 0
+    - oid_input is defined
+    - oid_input | length > 0
 
-- name: Set target_path
+- name: Set source_path
   set_fact:
-    target_path: "{{ target_path_input }}"
+    source_path: "{{ source_path_input }}"
   when:
-    - target_path_input is defined
-    - target_path_input | length > 0
+    - source_path_input is defined
+    - source_path_input | length > 0
 
 - name: Set login
   set_fact:
@@ -38,11 +37,9 @@
 - name: Set target conf
   set_fact:
     target_conf:
-      url: "{{ url }}"
-      force: "{{ force | bool }}"
-      target: "{{ target_path }}"
+      oid: "{{ oid }}"
+      path: "{{ source_path }}"
       host: "{{ host }}"
-      port: "{{ port | int }}"
       login: "{{ login }}"
       vault_id: "{{ vault_id }}"
   no_log: "{{ debug_logs | default('false') == 'false' }}"
